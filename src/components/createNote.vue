@@ -1,158 +1,126 @@
 <template>
-    <div class="width-20">
-      <div class="createnote-block">
-        <img 
-        v-if="imageSrc"
-          :src="imageSrc" 
-          :style="{ maxWidth: '100%', maxHeight: '100%' }" 
-          class="my-5" 
-          alt="Uploaded Image" 
-        />
-        
-        <div >
-          <input
-            id="upload-file-input"
-            ref="file"
-            class="input-file"
-            aria-label="file upload"
-            type="file"  
-            @change="addFiles($event)"
-          />
-          <button class="upload-btn" @click="uploadImage()">Image upload</button>
-        </div>
-  
-        <div>
-          <input placeholder="Title" v-model="noteTitle" />
-        </div>
-        
-        <div>
-          <textarea 
-            placeholder="Description" 
-            v-model="noteDesc" 
-            rows="3">
-          </textarea>
-        </div>
-  
-        <div>
-          <button v-if="!watchEditContent" class="add-btn" @click="addNote()">Add Note</button>
-          <div v-else>
-            <button @click="saveNote()">Save Note</button>
-            <button @click="cancelNote()">Cancel</button>
-          </div>
-        </div>
+  <div class="width-20">
+    <div class="createnote-block mb-4">
+      <p class="mr-2">You can create your own Note App</p>
+      <div>
+        <v-btn @click="openNoteDialog">Click here</v-btn>
       </div>
     </div>
-  </template>
-  
+  </div>
+  <createNotePopup
+    :noteDialog="props.noteDialog"
+    @closeNoteDialog="closeNoteDialog"
+    @addFiles="addFiles"
+    @uploadImage="uploadImage"
+    :noteTitle="noteTitle"
+    :noteDesc="noteDesc"
+    :isEditContent="props.isEditContent"
+    @addNote="addNote"
+    @saveNote="saveNote"
+    :notes="props.notes"
+    :imageSrc="props.imageSrc"
+    @createImagePreview="createImagePreview"
+     :getNoteTitle="props.getNoteTitle"
+        :getDescTitle="props.getDescTitle"
+  />
+</template>
 
-<script setup> 
+<script setup>
+import { ref, defineEmits, defineProps } from "vue";
+import createNotePopup from "./createNotePopup.vue";
 
- 
-import { ref,defineEmits ,defineProps, watch} from 'vue';
-
-const emit = defineEmits(['addNote', 'saveNote', 'updateImageSrc']);
+const emit = defineEmits(["addNote", "saveNote", "updateImageSrc", "openNoteDialog", "closeNoteDialog"]);
 
 const props = defineProps({
-    getNoteTitle:String,
-    getDescTitle:String, 
-    isEditContent: Boolean, 
-    imageSrc: String
-
-})
-
-const watchEditContent = ref(false); 
-
-watch (
-    () => props.getNoteTitle,
-    () => { 
-       noteTitle.value = props.getNoteTitle 
-    }
-    
-)
-
-watch (
-    () => props.getDescTitle,
-    () => {  
-         
-       noteDesc.value = props.getDescTitle
-    }
-    
-)
-
-watch (
-    () => props.isEditContent,
-    () => {  
-        
-        watchEditContent.value = props.isEditContent
-    }
-    
-)
+  getNoteTitle: String,
+  getDescTitle: String,
+  isEditContent: Boolean,
+  imageSrc: String,
+  notes: Array,
+  noteDialog: Boolean
+});
  
 
-const noteTitle = ref(props.getNoteTitle)
-const noteDesc = ref(props.getDescTitle)
- 
 
-const addNote = () =>{
-    emit('addNote', noteTitle.value, noteDesc.value, props.imageSrc) 
-    noteTitle.value = '';
-    noteDesc.value= '';
+
+
+const noteTitle = ref(props.getNoteTitle);
+const noteDesc = ref(props.getDescTitle);
+
+const addNote = (title, desc, image) => {
+  emit("addNote", title, desc, image);
 };
 
-const saveNote = () =>{
-    emit('saveNote', noteTitle.value, noteDesc.value,props.imageSrc) 
-}
+const saveNote = (title, desc, image) => {
+  emit("saveNote", title, desc, image);
+};
 
 const uploadImage = () => {
-document.getElementById('upload-file-input').click();
-}
+  document.getElementById("upload-file-input").click();
+};
 
-const  selectedFile = ref(null)
+const addFiles = (e) => {
+  console.log(e, "addFiles");
+  let file = e.target.files[0];
+  if (file) {
+    createImagePreview(file);
+  }
+};
 
+const openNoteDialog = () => {
+  emit('openNoteDialog')
+};
 
-const addFiles = (e) =>{
-    
-    let file = e.target.files[0]
-    if (file) {
-       selectedFile.value = file;
-        createImagePreview(file);
-      }
-
-      
-} 
+const closeNoteDialog = () => {
+  emit("closeNoteDialog")
+};
 
 // Create a preview of the image using a FileReader
-const createImagePreview = (file) =>{
-      const reader = new FileReader();
-      reader.onload = (e) => { 
-         emit('updateImageSrc', e)
-      };
-      reader.readAsDataURL(file); // Convert the file to a base64 data URL
-    }
+const createImagePreview = (file) => {
+  console.log(file, "createImagePreview");
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    console.log(e, "updateimagesrc");
+    emit("updateImageSrc", e);
+  };
+  reader.readAsDataURL(file); // Convert the file to a base64 data URL
+};
 </script>
 
 <style>
-.width-20{
-   width: 20%; 
+.width-20 {
+  width: 100%;
 }
-.createnote-block{
-    padding: 0 20px;
-    position: relative;
+.createnote-block {
+  padding: 0 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.createnote-block > div{
-    padding: 5px 0;
+.createnote-block > div {
+  padding: 5px 0;
 }
-.createnote-block input, .createnote-block textarea, .createnote-block button{
-    width: 100%;
+.createnote-block input,
+.createnote-block textarea {
+  width: 100%;
 }
-.createnote-block input, .createnote-block textarea{
-    border: 0;
-   
-    border-radius: 4px;
-    padding: 5px 0;
+
+.createnote-block button {
+  letter-spacing: 0;
+  text-transform: capitalize;
+  background: #083e69;
+  color: #fff;
 }
-.createnote-block input{
-    height: 30px;
+.createnote-block input,
+.createnote-block textarea {
+  border: 0;
+
+  border-radius: 4px;
+  padding: 5px 0;
+}
+.createnote-block input {
+  height: 30px;
 }
 .input-file {
   opacity: 0;
@@ -163,30 +131,21 @@ const createImagePreview = (file) =>{
   cursor: pointer;
   z-index: -1;
 }
-.img {
-    width: 100px;
-    height: 100px;
-    display: inline-block;
+.preview-img {
+  width: 150px;
+  /* height: 100px; */
+  display: inline-block;
 }
 
-img{
-    width: 100%;
-    max-height: 200px;
+.show-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  object-position: center;
 }
 
-button {
-    border: 0;
-    border-radius: 4px;
-    padding: 10px 10px;
-}
-.upload-btn{
-    background: #2d8494;
-  
-    color: #fff;
-}
-
-.add-btn{
-    background: grey;
-    color: #fff;
+.add-btn {
+  background: #000;
+  color: #fff;
 }
 </style>

@@ -1,16 +1,32 @@
-<template> 
-  <noteWrapper  />
+<template>  
+<div :class="route.name">
+<h1 v-if="userName">Welcome {{userName}}!</h1>
+  <router-view></router-view>
+</div>
 </template>
 
-<script>
-import noteWrapper from './components/noteWrapper.vue'
+<script setup> 
 
-export default {
-  name: 'App',
-  components: {
-    noteWrapper
+import { watch,ref } from 'vue';
+import { noteAppStore } from '@/main';
+
+import { useRoute } from 'vue-router';
+
+const store =    noteAppStore()
+
+const route = useRoute(); 
+
+const userName = ref('')
+
+watch(
+  () => store.$state.loginDetails,
+  () => {
+    userName.value= store.$state.loginDetails?.email ? store.$state.loginDetails.email.split('@')[0] : '';
   }
-}
+);
+
+
+ 
 </script>
 
 <style>
@@ -21,4 +37,14 @@ export default {
   text-align: center;
   color: #2c3e50; 
 }
+
+ 
+
+h1{
+  background: #f6f6f6;
+    padding: 10px 0;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+ 
 </style>
